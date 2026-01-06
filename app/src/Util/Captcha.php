@@ -100,8 +100,11 @@ class Captcha
      */
     protected function generateImage(): string
     {
+        //width and height of the image
+        $width=120;
+        $height=30;
         /** @var \GdImage */
-        $image = imagecreatetruecolor(150, 30);
+        $image = imagecreatetruecolor($width, $height);
 
         // Color pallette
         /** @var int */
@@ -116,13 +119,13 @@ class Captcha
         $dark_grey = imagecolorallocate($image, 64, 64, 64);
 
         // Create white rectangle
-        imagefilledrectangle($image, 0, 0, 150, 30, $white);
+        imagefilledrectangle($image, 0, 0, $width, $height, $white);
 
         // Add some lines
         for ($i = 0; $i < 2; $i++) {
             imageline($image, 0, rand() % 10, 10, rand() % 30, $dark_grey);
-            imageline($image, 0, rand() % 30, 150, rand() % 30, $red);
-            imageline($image, 0, rand() % 30, 150, rand() % 30, $yellow);
+            imageline($image, 0, rand() % $height, $width, rand() % $height, $red);
+            imageline($image, 0, rand() % $height, $width, rand() % $height, $yellow);
         }
 
         // RandTab color pallette
@@ -140,12 +143,27 @@ class Captcha
             imagesetpixel($image, rand() % 200, rand() % 50, $randc[rand() % 5]);
         }
 
+        /** use imagettftext instead, so that the fontsize of the code can be changed.
+        
         //calculate center of text
         $x = (int) round((150 - 0 - imagefontwidth(5) * strlen($this->code)) / 2 + 0 + 5);
 
         //write string twice
         imagestring($image, 5, $x, 7, $this->code, $black);
         imagestring($image, 5, $x, 7, $this->code, $black);
+
+        **//
+        //font of the text
+        $fontFile=__DIR__.'/arial.ttf';
+
+        //write the string to image, each character different angle/color/position
+        for($i=0;$i<5;$i++) {
+            $x=(int)($width/5)*$i+5;
+            $y=mt_rand($height-10,$height-5);
+            $stringColor = imagecolorallocate($image,mt_rand(16,150),mt_rand(16,150),mt_rand(16,150));
+            imagettftext($image, 18, mt_rand(-30, 30), $x, $y, $stringColor, $fontFile, $this->code[$i]);
+        }
+        
         //start ob
         ob_start();
         imagepng($image);
